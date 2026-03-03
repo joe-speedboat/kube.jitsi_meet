@@ -4,7 +4,7 @@
 * wanip must be configured on this node
   other setups may work, but are not tested
 * following ports must be open
-  * 10000/udp (jvb)
+  * 10000/udp (jvb)   
     `kubectl exec -n meet deploy/meet-jitsi-meet-jvb-0 -- printenv | grep JVB`
   * 443/tcp (traefik ingingress controller)
     
