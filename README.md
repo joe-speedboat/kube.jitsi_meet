@@ -1,7 +1,7 @@
 # Install Jitsi Meet on K3S Single Node
 
 ## Prereq
-* wanip must be configured on this node
+* wanip must be configured on this node.
   other setups may work, but are not tested
 * following ports must be open
   * 10000/udp (jvb)   
