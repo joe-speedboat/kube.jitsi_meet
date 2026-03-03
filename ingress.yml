@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: meet
+  namespace: __NS__
+spec:
+  rules:
+  - host: __URL__
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: __NS__-jitsi-meet-web
+            port:
+              number: 80

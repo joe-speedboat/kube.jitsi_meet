@@ -1,0 +1,12 @@
+publicURL: https://__URL__
+
+web:
+  service:
+    type: ClusterIP
+
+jvb:
+  useHostNetwork: true
+  service:
+    type: ClusterIP
+  publicIPs:
+    - __WANIP__
