@@ -28,3 +28,14 @@ helm install meet jitsi/jitsi-meet --set publicURL=https://$URL -f my_values.yml
 
 # if you need adjustment
 helm upgrade --install meet jitsi/jitsi-meet -f my_values.yml 
+```
+
+## Upgrade
+```bash
+kubectl get pods -o jsonpath='{range .items[*]}{range .spec.containers[*]}{.image}{"\n"}{end}{end}'
+helm repo update
+helm list
+helm search repo jitsi/jitsi-meet --versions | head
+helm upgrade meet jitsi/jitsi-meet --version "1.2.3" -f my_values.yml --wait
+kubectl get pods -o jsonpath='{range .items[*]}{range .spec.containers[*]}{.image}{"\n"}{end}{end}'
+```
