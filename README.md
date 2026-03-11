@@ -14,9 +14,12 @@
 URL=meeting.domain.tld
 NS=meeting
 WANIP="$(curl -s ifconfig.me)"
+
 sed "s/__NS__/$NS/" ingress.yml > my_ingress.yml
-sed -i "s/__URL__/$URL/" my_ingress.yml
-sed "s/__WANIP__/$WANIP/" values.yml > my_values.yml
+sed "s/__NS__/$NS/" values.yml > my_values.yml
+
+sed -i "s/__URL__/$URL/" my_ingress.yml my_values.yml
+sed -i "s/__WANIP__/$WANIP/" my_ingress.yml my_values.yml
 
 kubectl create namespace $NS
 kubectl config set-context --current --namespace="$1"
@@ -24,7 +27,7 @@ kubectl config set-context --current --namespace="$1"
 
 # install
 helm repo add jitsi https://jitsi-contrib.github.io/jitsi-helm/
-helm install meet jitsi/jitsi-meet --set publicURL=https://$URL -f my_values.yml 
+helm install meet jitsi/jitsi-meet -f my_values.yml 
 
 # if you need adjustment
 helm upgrade --install meet jitsi/jitsi-meet -f my_values.yml 
