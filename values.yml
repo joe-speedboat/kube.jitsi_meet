@@ -1,4 +1,4 @@
-publicURL: https://__URL__
+publicURL: "https://__URL__"
 
 web:
   service:
