@@ -453,7 +453,7 @@ status() {
   echo "## Relevant Prosody env"
   kubectl exec -n "$NAMESPACE" "$PROSODY_RESOURCE" -- printenv | sort \
     | grep -E '^(ENABLE_AUTH|ENABLE_GUESTS|AUTH_TYPE|XMPP_|JIBRI_)' \
-    | sed -E 's/^(JIBRI_.*PASSWORD)=.*/\\1=<redacted>/' || true
+    | sed -E 's/^(JIBRI_.*PASSWORD)=.*/\1=<redacted>/' || true
 }
 
 jibri_health() {
