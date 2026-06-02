@@ -1,0 +1,8 @@
+# Generated local deployment files
+.jitsi-recording.env
+my_values.yml
+my_ingress.yml
+
+# Local editor/system files
+*.swp
+.DS_Store
