@@ -45,7 +45,7 @@ Environment overrides:
   NAMESPACE          Kubernetes namespace, default: meet
   RELEASE            Helm release name, default: meet
   CHART              Helm chart, default: jitsi/jitsi-meet
-  CHART_VERSION      Helm chart version, default: 2.16.0
+  CHART_VERSION      Helm chart version, default: 2.16.0; use latest to omit --version
   PUBLIC_URL         External Jitsi URL, for example: https://meet.example.ch
   JVB_PUBLIC_IP      Public IP advertised by JVB; setup can auto-detect it
   VALUES_FILE        Generated Helm values file, default: my_values.yml
@@ -326,6 +326,8 @@ EOF
 }
 
 deploy() {
+  local helm_version_args=()
+
   require_kube_tools
   [[ -f "$VALUES_FILE" ]] || {
     echo "Values file missing: $VALUES_FILE" >&2
@@ -334,8 +336,15 @@ deploy() {
   }
   helm_repo_ensure
   apply_jibri_pvc
+
+  if [[ -n "$CHART_VERSION" && "$CHART_VERSION" != "latest" ]]; then
+    helm_version_args=(--version "$CHART_VERSION")
+  else
+    echo "Using latest chart version from Helm repo (no --version pin)."
+  fi
+
   helm upgrade --install "$RELEASE" "$CHART" \
-    --version "$CHART_VERSION" \
+    "${helm_version_args[@]}" \
     -n "$NAMESPACE" \
     --create-namespace \
     -f "$VALUES_FILE"
