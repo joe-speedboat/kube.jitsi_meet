@@ -388,6 +388,28 @@ prosodyctl_exec() {
     prosodyctl --config /config/prosody.cfg.lua "$@"
 }
 
+prosodyctl_exec_stdin() {
+  require_cmd kubectl
+  kubectl exec -i -n "$NAMESPACE" "$PROSODY_RESOURCE" -- \
+    prosodyctl --config /config/prosody.cfg.lua "$@"
+}
+
+moderator_identity() {
+  local input="$1" default_domain="$2" user domain
+  if [[ "$input" == *@* ]]; then
+    user="${input%@*}"
+    domain="${input#*@}"
+  else
+    user="$input"
+    domain="$default_domain"
+  fi
+  if [[ -z "$user" || -z "$domain" ]]; then
+    echo "ERROR: moderator must be USER or USER@DOMAIN" >&2
+    exit 1
+  fi
+  printf '%s\t%s\t%s@%s\n' "$user" "$domain" "$user" "$domain"
+}
+
 read_password() {
   local prompt="$1"
   local pw1 pw2
@@ -407,33 +429,36 @@ read_password() {
 }
 
 moderator_add() {
-  local user="${1:-}" password="${2:-}" domain
-  [[ -n "$user" ]] || { echo "Usage: $0 moderator add USER [PASSWORD]" >&2; exit 1; }
+  local input="${1:-}" password="${2:-}" domain user jid
+  [[ -n "$input" ]] || { echo "Usage: $0 moderator add USER [PASSWORD]" >&2; exit 1; }
   domain="$(moderator_domain)"
+  IFS=$'\t' read -r user domain jid < <(moderator_identity "$input" "$domain")
   if [[ -z "$password" ]]; then
-    password="$(read_password "Password for moderator '$user'")"
+    password="$(read_password "Password for moderator '$jid'")"
   fi
   prosodyctl_exec register "$user" "$domain" "$password"
-  echo "Moderator added: $user@$domain"
+  echo "Moderator added: $jid"
 }
 
 moderator_passwd() {
-  local user="${1:-}" password="${2:-}" domain
-  [[ -n "$user" ]] || { echo "Usage: $0 moderator passwd USER [PASSWORD]" >&2; exit 1; }
+  local input="${1:-}" password="${2:-}" domain user jid
+  [[ -n "$input" ]] || { echo "Usage: $0 moderator passwd USER [PASSWORD]" >&2; exit 1; }
   domain="$(moderator_domain)"
+  IFS=$'\t' read -r user domain jid < <(moderator_identity "$input" "$domain")
   if [[ -z "$password" ]]; then
-    password="$(read_password "New password for moderator '$user'")"
+    password="$(read_password "New password for moderator '$jid'")"
   fi
-  prosodyctl_exec passwd "$user" "$domain" "$password"
-  echo "Moderator password changed: $user@$domain"
+  printf '%s\n%s\n' "$password" "$password" | prosodyctl_exec_stdin passwd "$jid"
+  echo "Moderator password changed: $jid"
 }
 
 moderator_delete() {
-  local user="${1:-}" domain
-  [[ -n "$user" ]] || { echo "Usage: $0 moderator delete USER" >&2; exit 1; }
+  local input="${1:-}" domain user jid
+  [[ -n "$input" ]] || { echo "Usage: $0 moderator delete USER" >&2; exit 1; }
   domain="$(moderator_domain)"
-  prosodyctl_exec unregister "$user" "$domain"
-  echo "Moderator deleted: $user@$domain"
+  IFS=$'\t' read -r user domain jid < <(moderator_identity "$input" "$domain")
+  prosodyctl_exec deluser "$jid"
+  echo "Moderator deleted: $jid"
 }
 
 moderator_list() {
@@ -448,7 +473,7 @@ moderator_list() {
 
   echo "Auth domain: $domain"
   kubectl exec -n "$NAMESPACE" "$PROSODY_RESOURCE" -- \
-    sh -c "set -eu; d='${data_dir%/}/data/${encoded_domain}/accounts'; if [ -d \"\$d\" ]; then for f in \"\$d\"/*.dat; do [ -e \"\$f\" ] || exit 0; basename \"\$f\" .dat; done | sort; else echo 'No account directory found: '\"\$d\" >&2; exit 2; fi"
+    sh -c "set -eu; d='${data_dir%/}/data/${encoded_domain}/accounts'; if [ -d \"\$d\" ]; then users=\$(for f in \"\$d\"/*.dat; do [ -e \"\$f\" ] || continue; basename \"\$f\" .dat; done | sort); if [ -n \"\$users\" ]; then printf '%s\\n' \"\$users\"; else echo 'No moderator accounts found.'; fi; else echo 'No moderator accounts found.'; fi"
 }
 
 status() {
