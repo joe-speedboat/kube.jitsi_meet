@@ -158,6 +158,12 @@ Delete a moderator:
 ./jitsi-recording-admin.sh moderator delete chris
 ```
 
+The moderator commands also accept a full JID when you intentionally need a non-default domain:
+
+```bash
+./jitsi-recording-admin.sh moderator passwd chris@meet.jitsi
+```
+
 ## Recording checks
 
 Check Jibri health:
