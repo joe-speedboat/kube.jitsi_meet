@@ -6,7 +6,7 @@ The current helper targets:
 
 - Kubernetes: single-node k3s
 - OS: Rocky Linux 10 or another Linux host suitable for k3s
-- Chart: `jitsi/jitsi-meet`, pinned by default to tested version `2.16.0`
+- Chart: `jitsi/jitsi-meet`, pinned by default to tested version `2.20.0`
 - Ingress: Traefik or another standard Kubernetes Ingress controller
 - Recording: Jibri, enabled through the Helm chart
 - Authentication: internal Prosody users for moderators
@@ -83,11 +83,34 @@ The generated private files are ignored by `.gitignore`.
 
 ## Deploy
 
-By default the helper installs the tested chart version `2.16.0` for reproducibility. This is intentional: a hidden floating chart can change values, templates, storage behavior, or authentication defaults and break a repeat deployment.
+By default the helper installs the tested chart version `2.20.0` for reproducibility. This is intentional: a hidden floating chart can change values, templates, storage behavior, or authentication defaults and break a repeat deployment.
 
 To explicitly use the newest chart available from the configured Helm repo, run deploy with `CHART_VERSION=latest`. Helm itself does not use a special `latest` chart version; the helper treats `latest` as "omit `--version`", which makes Helm install the newest chart from the repo index at that time.
 
-Recommended flow for future upgrades:
+## Upgrade
+
+Check the currently deployed release and available chart versions:
+
+```bash
+helm repo update jitsi
+helm list -n meet
+helm search repo jitsi/jitsi-meet --versions | head
+```
+
+Upgrade to the latest available chart:
+
+```bash
+helm upgrade meet jitsi/jitsi-meet -n meet -f my_values.yml --wait
+kubectl get pods -n meet -o jsonpath='{range .items[*]}{range .spec.containers[*]}{.image}{"\n"}{end}{end}'
+```
+
+Or upgrade to a specific chart version:
+
+```bash
+helm upgrade meet jitsi/jitsi-meet -n meet -f my_values.yml --version 2.20.0 --wait
+```
+
+Upgrade using the helper script:
 
 ```bash
 helm repo update jitsi
@@ -95,10 +118,18 @@ helm search repo jitsi/jitsi-meet --versions | head
 CHART_VERSION=latest ./jitsi-recording-admin.sh deploy
 ```
 
-For production, prefer testing the newer chart first and then pinning the exact working version, for example:
+To pin a specific chart version after testing:
 
 ```bash
-CHART_VERSION=2.17.0 ./jitsi-recording-admin.sh deploy
+CHART_VERSION=2.20.0 ./jitsi-recording-admin.sh deploy
+```
+
+After upgrade, verify all pods are healthy:
+
+```bash
+./jitsi-recording-admin.sh status
+kubectl get pods -n meet
+kubectl get pvc -n meet
 ```
 
 For a fresh deployment where no existing data must be kept:
@@ -196,7 +227,7 @@ Common overrides:
 
 - `NAMESPACE` — Kubernetes namespace, default: `meet`
 - `RELEASE` — Helm release name, default: `meet`
-- `CHART_VERSION` — Helm chart version, default: tested pin `2.16.0`; set to `latest` to omit `--version` and let Helm use the newest repo version
+- `CHART_VERSION` — Helm chart version, default: `2.20.0`; set to `latest` to omit `--version` and let Helm use the newest repo version
 - `PUBLIC_URL` — external URL, for example `https://meet.example.ch`
 - `JVB_PUBLIC_IP` — public IP advertised by JVB
 - `VALUES_FILE` — generated values file, default: `my_values.yml`

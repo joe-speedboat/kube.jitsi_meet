@@ -11,7 +11,7 @@ set -Eeuo pipefail
 NAMESPACE="${NAMESPACE:-meet}"
 RELEASE="${RELEASE:-meet}"
 CHART="${CHART:-jitsi/jitsi-meet}"
-CHART_VERSION="${CHART_VERSION:-2.16.0}"
+CHART_VERSION="${CHART_VERSION:-2.20.0}"
 PUBLIC_URL="${PUBLIC_URL:-}"
 JVB_PUBLIC_IP="${JVB_PUBLIC_IP:-}"
 VALUES_FILE="${VALUES_FILE:-my_values.yml}"
@@ -45,7 +45,7 @@ Environment overrides:
   NAMESPACE          Kubernetes namespace, default: meet
   RELEASE            Helm release name, default: meet
   CHART              Helm chart, default: jitsi/jitsi-meet
-  CHART_VERSION      Helm chart version, default: 2.16.0; use latest to omit --version
+  CHART_VERSION      Helm chart version, default: 2.20.0; use latest to omit --version
   PUBLIC_URL         External Jitsi URL, for example: https://meet.example.ch
   JVB_PUBLIC_IP      Public IP advertised by JVB; setup can auto-detect it
   VALUES_FILE        Generated Helm values file, default: my_values.yml
